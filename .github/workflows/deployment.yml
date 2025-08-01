@@ -53,10 +53,11 @@ jobs:
             echo "skip_merge=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Merge pre-* into target base branch
+      - name: Merge pre-* into target base branch and trigger quality workflow
         if: steps.check_workflows.outputs.skip_merge == 'false'
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -67,9 +68,17 @@ jobs:
           BASE_BRANCH=${{ steps.vars.outputs.base_branch }}
           CURRENT_BRANCH=${{ github.ref_name }}
 
+          echo "Checking out base branch: $BASE_BRANCH"
           git checkout -B "$BASE_BRANCH" "origin/$BASE_BRANCH"
+
+          echo "Merging changes from $CURRENT_BRANCH into $BASE_BRANCH"
           git merge "origin/$CURRENT_BRANCH" --no-ff --no-edit
           git push origin "$BASE_BRANCH"
+
+          echo "Triggering quality.yml workflow on $BASE_BRANCH..."
+          gh workflow run quality.yml \
+            --repo "${{ github.repository }}" \
+            --ref "$BASE_BRANCH"
 
   revert_merge:
     name: Revert Pre-Branch Commits from Merged PR
