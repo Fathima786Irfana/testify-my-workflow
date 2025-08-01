@@ -6,7 +6,7 @@ def fn_get_attribute(i_variant_of, i_attribute, i_attribute_value):
     ld_child_doc.attribute_value = i_attribute_value
     return ld_child_doc
 
-# Comment line
+# Comment
 # Fill basic details of the item
 def fn_fill_item_basic_details(id_item, i_item_group, i_variant_of):
     id_item.item_group = i_item_group
