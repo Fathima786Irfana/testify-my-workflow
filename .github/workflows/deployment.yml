@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+            fetch-depth: 0
 
       - name: Set base branch
         id: vars
@@ -54,8 +56,9 @@ jobs:
       - name: Merge pre-* into target base branch
         if: steps.check_workflows.outputs.skip_merge == 'false'
         run: |
-          # git config user.name "github-actions[bot]"
-          # git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --unshallow || true
           git fetch origin
 
           BASE_BRANCH=${{ steps.vars.outputs.base_branch }}
