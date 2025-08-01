@@ -1,5 +1,8 @@
 on:
-  push:
+  workflow_run:
+    workflows: ["Auto-Deployment"]
+    types:
+      - completed
     branches:
       - main
       - release
@@ -9,19 +12,7 @@ jobs:
   code_quality_check:
     runs-on: ubuntu-latest
     
-    if: |
-      !contains(github.event.head_commit.message, '[skip ci]') &&
-      !contains(github.event.head_commit.message, 'Merge branch ''main'' into ') &&
-      !(
-        github.event_name == 'push' &&
-        (github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/hot-fix')) &&
-        github.event.before == 'refs/heads/main'
-      ) &&
-      !(
-        github.event_name == 'pull_request' &&
-        github.base_ref == 'refs/heads/main' &&
-        (github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/hot-fix'))
-      )
+    if: github.event.workflow_run.head_branch == 'release'
     steps:
       - name: Use Node.js v20
         uses: actions/setup-node@v4
@@ -67,19 +58,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     needs: code_quality_check
-    if: |
-      !contains(github.event.head_commit.message, '[skip ci]') &&
-      !contains(github.event.head_commit.message, 'Merge branch ''main'' into ') &&
-      !(
-        github.event_name == 'push' &&
-        (github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/hot-fix')) &&
-        github.event.before == 'refs/heads/main'
-      ) &&
-      !(
-        github.event_name == 'pull_request' &&
-        github.base_ref == 'refs/heads/main' &&
-        (github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/hot-fix'))
-      )
+    if: github.event.workflow_run.head_branch == 'release'
     env:
       HOST: ${{ vars.QA_HOST }}
       PROTOCOL: ${{ vars.QA_PROTOCOL }}
@@ -197,21 +176,7 @@ jobs:
   cypress_test:
     runs-on: ubuntu-latest
     needs: quality
-    if: |
-      !contains(github.event.head_commit.message, 'skipcy') &&
-      !contains(github.event.head_commit.message, '[skip ci]') &&
-      !contains(github.event.head_commit.message, '(ecr)') &&
-      !contains(github.event.head_commit.message, 'Merge branch ''main'' into ') &&
-      !(
-        github.event_name == 'push' &&
-        (github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/hot-fix')) &&
-        github.event.before == 'refs/heads/main'
-      ) &&
-      !(
-        github.event_name == 'pull_request' &&
-        github.base_ref == 'refs/heads/main' &&
-        (github.ref == 'refs/heads/release' || startsWith(github.ref, 'refs/heads/hot-fix'))
-      )
+    if: github.event.workflow_run.head_branch == 'release'
     env:
       USER_NAME: ${{ secrets.TEST_USER_NAME }}
       PASSWORD: ${{ secrets.TEST_PASSWORD }}
