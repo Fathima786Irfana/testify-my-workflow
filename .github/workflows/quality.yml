@@ -3,10 +3,6 @@ on:
     workflows: ["Auto-Deployment"]
     types:
       - completed
-    branches:
-      - main
-      - release
-      - hot-fix*
 
 jobs:
   code_quality_check:
