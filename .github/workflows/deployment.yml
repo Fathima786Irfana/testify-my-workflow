@@ -65,43 +65,43 @@ jobs:
           git merge "origin/$CURRENT_BRANCH" --no-ff --no-edit --allow-unrelated-histories
           git push origin "$BASE_BRANCH"
 
-    revert_merge:
-      name: Revert Pre-Branch Commits from Merged PR
-      if: needs.auto-merge-pre-to-base.outputs.skip_merge == 'true'
-      runs-on: ubuntu-latest
-      needs: auto-merge-pre-to-base
+  revert_merge:
+    name: Revert Pre-Branch Commits from Merged PR
+    if: needs.auto-merge-pre-to-base.outputs.skip_merge == 'true'
+    runs-on: ubuntu-latest
+    needs: auto-merge-pre-to-base
 
-      env:
-        GH_PAT: ${{ secrets.GH_PAT }}
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
 
-      steps:
-        - name: Checkout repo with full history
-          uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
-            ref: ${{ github.ref_name }}
+    steps:
+      - name: Checkout repo with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
 
-        - name: Configure Git
-          run: |
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-        - name: Find base commit before PR merge
-          id: find_base
-          run: |
-            # Get the parent branch (e.g., pre-release)
-            CURRENT_BRANCH="${{ github.ref_name }}"
-            
-            # Get the commit just before the PR merge (merge-base of HEAD and HEAD^)
-            BASE_COMMIT=$(git merge-base HEAD HEAD^)
-            echo "base_commit=$BASE_COMMIT" >> "$GITHUB_OUTPUT"
-            echo "Base Commit Before PR Merge: $BASE_COMMIT"
+      - name: Find base commit before PR merge
+        id: find_base
+        run: |
+          # Get the parent branch (e.g., pre-release)
+          CURRENT_BRANCH="${{ github.ref_name }}"
+          
+          # Get the commit just before the PR merge (merge-base of HEAD and HEAD^)
+          BASE_COMMIT=$(git merge-base HEAD HEAD^)
+          echo "base_commit=$BASE_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "Base Commit Before PR Merge: $BASE_COMMIT"
 
-        - name: Hard reset to base commit (undo PR merge)
-          run: |
-            git reset --hard ${{ steps.find_base.outputs.base_commit }}
+      - name: Hard reset to base commit (undo PR merge)
+        run: |
+          git reset --hard ${{ steps.find_base.outputs.base_commit }}
 
-        - name: Force push to pre-* branch
-          run: |
-            CURRENT_BRANCH="${{ github.ref_name }}"
-            git push --force https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} HEAD:$CURRENT_BRANCH
+      - name: Force push to pre-* branch
+        run: |
+          CURRENT_BRANCH="${{ github.ref_name }}"
+          git push --force https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} HEAD:$CURRENT_BRANCH
