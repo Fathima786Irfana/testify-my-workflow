@@ -54,15 +54,15 @@ jobs:
       - name: Merge pre-* into target base branch
         if: steps.check_workflows.outputs.skip_merge == 'false'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # git config user.name "github-actions[bot]"
+          # git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin
 
           BASE_BRANCH=${{ steps.vars.outputs.base_branch }}
           CURRENT_BRANCH=${{ github.ref_name }}
 
           git checkout -B "$BASE_BRANCH" "origin/$BASE_BRANCH"
-          git merge "origin/$CURRENT_BRANCH" --no-ff --no-edit --allow-unrelated-histories
+          git merge "origin/$CURRENT_BRANCH" --no-ff --no-edit
           git push origin "$BASE_BRANCH"
 
   revert_merge:
