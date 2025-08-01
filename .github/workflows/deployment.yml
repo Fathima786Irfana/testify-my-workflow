@@ -55,9 +55,12 @@ jobs:
 
       - name: Merge pre-* into target base branch
         if: steps.check_workflows.outputs.skip_merge == 'false'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
           git fetch --unshallow || true
           git fetch origin
 
